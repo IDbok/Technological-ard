@@ -10,10 +10,15 @@ namespace Technological_card
         byte elSaftyGroup;
         byte grade;
         string competence;
+        string symbol;
         string comment;
 
-        public Staff(int num, string name, string type, string combineResponsibility, 
-            byte elSaftyGroup, byte grade, string competence, string comment) 
+        public Staff()
+        {
+
+        }
+        public Staff(int num, string name, string type, string combineResponsibility,
+            byte elSaftyGroup, byte grade, string competence, string symbol, string comment) 
         {
             this.num = num;
             this.name = name;
@@ -22,6 +27,7 @@ namespace Technological_card
             this.elSaftyGroup = elSaftyGroup;
             this.grade = grade;
             this.competence = competence;
+            this.symbol = symbol;
             this.comment = comment;
         }
 
@@ -53,7 +59,15 @@ namespace Technological_card
         { get { return grade; } set {  grade = value; } }
         public string Competence
         { get { return competence; } set { competence = value; } }
+        public string Symbol
+        { get { return symbol; } set { symbol = value; } }
         public string Comment
         { get { return comment; } set {  comment = value; } }
+
+        public string ToSring() 
+        {
+            return $"{num} {name} {type} {combineResponsibility} {elSaftyGroup} {grade} {competence} {symbol}" +
+                $"\n{comment}";
+        }
     }
 }

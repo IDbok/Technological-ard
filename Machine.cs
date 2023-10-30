@@ -12,10 +12,10 @@ namespace Technological_card
         string name;
         string type;
         string unit;
-        uint amount; // using uint here
-        decimal price;
+        int amount; // TODO - проверка на 0 и отриц значений
+        float price;// TODO - проверка на 0 и отриц значений
 
-        public Machine(int num, string name, string type, string unit, uint amount, decimal price)
+        public Machine(int num, string name, string type, string unit, int amount, float price)
         {
             this.num = num;
             this.name = name;
@@ -35,9 +35,9 @@ namespace Technological_card
 
         public string Unit
         { get { return unit; } set { unit = value; } }
-        public uint Amount
+        public int Amount
         { get { return amount; } set { amount = value; } }
-        public decimal Price
+        public float Price
         { get { return price; } set { price = value; } }
     }
 }
