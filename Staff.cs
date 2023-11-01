@@ -1,7 +1,7 @@
 ﻿
 namespace Technological_card
 {
-    internal class Staff //1. Требования к составу бригады и квалификации
+    internal class Staff : Struct //1. Требования к составу бригады и квалификации
     {
         int num;
         string name;

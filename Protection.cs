@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Technological_card
 {
-    internal class Protection //4. Требования к средствам защиты
+    internal class Protection : Struct//4. Требования к средствам защиты
     {
         int num;
         string name;

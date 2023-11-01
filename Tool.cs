@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Technological_card
+﻿namespace Technological_card
 {
-    internal class Tool //5. Требования к инструментам и приспособлениям
+    internal class Tool : Struct//5. Требования к инструментам и приспособлениям
     {
         int num;
         string name;

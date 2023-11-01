@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Technological_card
 {
-    internal class Component //2. Требования к материалам и комплектующим
+    internal class Component : Struct//2. Требования к материалам и комплектующим
     {
         static int count;
         [Name("Num")]
@@ -37,7 +37,7 @@ namespace Technological_card
         }
 
         [Name("Num")]//[Name("№")]
-        public int Num
+        public override int Num
         { get { return num; } set { num = value; } }
         [Name("Наименование")]
         public string Name
@@ -61,7 +61,7 @@ namespace Technological_card
 
         public string ToString() 
         {
-            return $"{num} {name} {type} {unit} {amount}";
+            return $"{num} {name} {type} {amount}{unit}";
         }
 
     }
