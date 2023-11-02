@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Technological_card
 {
-    internal class Machine //3. Требования к механизмам
+    internal class Machine : Struct  //3. Требования к механизмам
     {
         int num;
         string name;
@@ -28,19 +28,19 @@ namespace Technological_card
             this.price = price;
         }
 
-        public int Num
+        public override int Num
         { get { return num; } set { num = value; } }
 
-        public string Name
+        public override string Name
         { get { return name; } set { name = value; } }
-        public string Type
+        public override string Type
         { get { return type; } set { type = value; } }
 
-        public string Unit
+        public override string Unit
         { get { return unit; } set { unit = value; } }
-        public int Amount
+        public override int Amount
         { get { return amount; } set { amount = value; } }
-        public float Price
+        public override float Price
         { get { return price; } set { price = value; } }
     }
 }

@@ -1,14 +1,14 @@
 ﻿
 namespace Technological_card
 {
-    internal class Staff //1. Требования к составу бригады и квалификации
+    public class Staff //1. Требования к составу бригады и квалификации
     {
         int num;
         string name;
         string type;
         string combineResponsibility;
         string elSaftyGroup;
-        byte grade;
+        string grade;
         string competence;
         string symbol;
         string comment;
@@ -18,7 +18,7 @@ namespace Technological_card
 
         }
         public Staff(int num, string name, string type, string combineResponsibility,
-            string elSaftyGroup, byte grade, string competence, string symbol, string comment) 
+            string elSaftyGroup, string grade, string competence, string symbol, string comment) 
         {
             this.num = num;
             this.name = name;
@@ -55,7 +55,7 @@ namespace Technological_card
         }
         public string ElSaftyGroup
         { get { return elSaftyGroup; } set { elSaftyGroup = value; } }
-        public byte Grade
+        public string Grade
         { get { return grade; } set {  grade = value; } }
         public string Competence
         { get { return competence; } set { competence = value; } }
