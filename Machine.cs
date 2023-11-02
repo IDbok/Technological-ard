@@ -14,7 +14,10 @@ namespace Technological_card
         string unit;
         int amount; // TODO - проверка на 0 и отриц значений
         float price;// TODO - проверка на 0 и отриц значений
-
+        public Machine()
+        {
+            
+        }
         public Machine(int num, string name, string type, string unit, int amount, float price)
         {
             this.num = num;

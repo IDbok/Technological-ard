@@ -13,7 +13,11 @@ namespace Technological_card
         string type;
         string unit;
         int amount;
-        public Protection (int num, string name, string type, string unit, int amount)
+        public Protection()
+        {
+            
+        }
+        public Protection(int num, string name, string type, string unit, int amount)
         {
             this.num = num;
             this.name = name;

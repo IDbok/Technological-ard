@@ -1,4 +1,6 @@
-﻿using OfficeOpenXml;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using OfficeOpenXml;
+using System.Linq;
 using System.Text.Json;
 
 namespace Technological_card
@@ -20,7 +22,7 @@ namespace Technological_card
 
             };
         static string[] stuctNames = { "Staff", "Components", "Machines", "Protection", "Tools" };
-        static int numTitle = 5 - 1;
+        //static int numTitle = 5 - 1;
 
         static void Main(string[] args)
         {
@@ -35,7 +37,7 @@ namespace Technological_card
             {
                 dicFirstRows.Add(st, 1);
             }
-            
+
             // Создаю объект для работы с Excel
             using (var package = new ExcelPackage(new FileInfo(filepath)))
             {
@@ -49,59 +51,67 @@ namespace Technological_card
                 // TODO: Цыкл для всех листов с ТК
 
                 // Определение листа в переменную
-                string sheetName = sheetsTK[3];
+                string sheetName = sheetsTK[0];
                 var worksheet = package.Workbook.Worksheets[sheetName];
 
-                // Поиск номеров строк с ключевыми словами. Запись их в словарь
-                int numRowsFound = 0;
-                for (int i = 1; i < 1000; i++)
+                for (int i = 0; i < stuctNames.Count(); i++)
                 {
-                    string? valueCell = worksheet.Cells[i, 1].Value.ToString();
-                    string keyWord = keyWords[numRowsFound];
-                    if (valueCell == keyWord)
+                    // Поиск номеров строк с ключевыми словами. Запись их в словарь
+                    int[] startRows = new int[keyWords.Count()];
+                    startRows = StartRowsCounter(startRows, worksheet);
+
+                    // Запись данных из Excel в json в соответствии с моделью данных
+                    switch (i)
                     {
-                        dicFirstRows[keyWord] = i;
-                        numRowsFound++;
+                        case 1:
+                            SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet),i, sheetName);
+                            break;
+                        case 3:
+                            SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
+                            break;
+                        case 4:
+                            SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet),i, sheetName);
+                            break;
+                        case 0:
+                            //SaveToJSON(CreateListModel(new List<Staff>(), i, startRows, worksheet),i, sheetName);
+                            break;
+                        case 2:
+                            SaveToJSON(CreateListModel(new List<Machine>(), i, startRows, worksheet),i, sheetName);
+                            break;
+                        default:
+                            break;
                     }
-                    if (numRowsFound == dicFirstRows.Count) { break; }
+
                 }
 
-                // Создание списков объектов моделей данных
-                //List<Staff> Staffs = new();
-                //List<Tool> Tools = new();
-                //List<Machine> Machines = new();
-                //List<Protection> Protections = new();
-                var Components = new List<Struct>();
-
-                // Запись данных из Excel в список в соответствии с моделью данных
-                int startRow = dicFirstRows[keyWords[numTitle]] + 2;
-                int endRow = dicFirstRows[keyWords[numTitle + 1]];
-                for (int i = startRow; i < endRow; i++)
-                {
-                    string num = worksheet.Cells[i, 1].Value.ToString().Trim();
-                    string name = worksheet.Cells[i, 2].Value.ToString().Trim();
-                    string type = worksheet.Cells[i, 3].Value.ToString().Trim();
-                    string unit = worksheet.Cells[i, 4].Value.ToString().Trim();
-                    string amount = worksheet.Cells[i, 5].Value.ToString().Trim();
-
-                    Components.Add(new Component
-                    {
-                        Num = int.Parse(num),
-                        Name = name,
-                        Type = type,
-                        Unit = unit,
-                        Amount = (int)uint.Parse(amount)
-                    });
-                    
-                }
-
-                SaveToJSON(Components, sheetName);
-                
                 Console.WriteLine($"Парсиг карты на листе {sheetName} законцен!");
+
             }
         }
 
-        public static void SaveToJSON(List<Struct> ListOfStruct, string sheetName) 
+        public static int[] StartRowsCounter(int[] startRows, ExcelWorksheet worksheet) 
+        {
+            int numRowsFound = 0;
+            for (int i = 1; i < 1000; i++)
+            {
+                string? valueCell = worksheet.Cells[i, 1].Value.ToString();
+                string keyWord = keyWords[numRowsFound];
+                if (valueCell == keyWord)
+                {
+                    startRows[numRowsFound] = i;
+                    numRowsFound++;
+                }
+                if (numRowsFound == startRows.Count()) { break; }
+            }
+            return startRows;
+        }
+        public enum StructType 
+        { 
+            Component=2, 
+            Protection=4, 
+            Tool=5
+        }
+        public static void SaveToJSON(List<Struct> ListOfStruct,int numTitle, string sheetName) 
         {
             foreach (var item in ListOfStruct)
             {
@@ -118,7 +128,7 @@ namespace Technological_card
                 File.WriteAllText(pathJson + item.Num + ".json", json);
             }
         }
-        public static void SaveToJSON(List<Staff> ListOfStruct, string sheetName)
+        public static void SaveToJSON(List<Staff> ListOfStruct, int numTitle, string sheetName)
         {
             foreach (var item in ListOfStruct)
             {
@@ -135,7 +145,7 @@ namespace Technological_card
                 File.WriteAllText(pathJson + item.Num + ".json", json);
             }
         }
-        public static void SaveToJSON(List<Machine> ListOfStruct, string sheetName)
+        public static void SaveToJSON(List<Machine> ListOfStruct, int numTitle, string sheetName)
         {
             foreach (var item in ListOfStruct)
             {
@@ -151,6 +161,111 @@ namespace Technological_card
                 if (!Directory.Exists(pathJson)) Directory.CreateDirectory(pathJson);
                 File.WriteAllText(pathJson + item.Num + ".json", json);
             }
+        }
+
+        public static List<Struct> CreateListModel(List<Struct> structs, int numTitle, int[] startRows, ExcelWorksheet worksheet) 
+        {
+            StructType structType = (StructType)Enum.ToObject(typeof(StructType), numTitle + 1);
+            // Запись данных из Excel в список в соответствии с моделью данных
+            int startRow = startRows[numTitle] + 2;
+            int endRow = startRows[numTitle + 1];
+            for (int i = startRow; i < endRow; i++)
+            {
+                string num = worksheet.Cells[i, 1].Value.ToString().Trim();
+                string name = worksheet.Cells[i, 2].Value.ToString().Trim();
+                string type = worksheet.Cells[i, 3].Value.ToString().Trim();
+                string unit = worksheet.Cells[i, 4].Value.ToString().Trim();
+                string amount = worksheet.Cells[i, 5].Value.ToString().Trim();
+
+                if (structType == StructType.Tool)
+                {
+                    structs.Add(new Tool
+                    {
+                        Num = int.Parse(num),
+                        Name = name,
+                        Type = type,
+                        Unit = unit,
+                        Amount = (int)uint.Parse(amount)
+                    });
+                } else if (structType == StructType.Component)
+                {
+                    structs.Add(new Component
+                    {
+                        Num = int.Parse(num),
+                        Name = name,
+                        Type = type,
+                        Unit = unit,
+                        Amount = (int)uint.Parse(amount)
+                    });
+                }
+                else if (structType == StructType.Protection)
+                {
+                    structs.Add(new Protection
+                    {
+                        Num = int.Parse(num),
+                        Name = name,
+                        Type = type,
+                        Unit = unit,
+                        Amount = (int)uint.Parse(amount)
+                    });
+                }
+
+            }
+            return structs;
+        }
+        public static List<Machine> CreateListModel(List<Machine> structs, int numTitle, int[] startRows, ExcelWorksheet worksheet)
+        {
+            int startRow = startRows[numTitle] + 2;
+            int endRow = startRows[numTitle + 1];
+            for (int i = startRow; i < endRow; i++)
+            {
+                string num = worksheet.Cells[i, 1].Value.ToString().Trim();
+                string name = worksheet.Cells[i, 2].Value.ToString().Trim();
+                string type = worksheet.Cells[i, 3].Value.ToString().Trim();
+                string unit = worksheet.Cells[i, 4].Value.ToString().Trim();
+                string amount = worksheet.Cells[i, 5].Value.ToString().Trim();
+
+                structs.Add(new Machine
+                {
+                    Num = int.Parse(num),
+                    Name = name,
+                    Type = type,
+                    Unit = unit,
+                    Amount = (int)uint.Parse(amount)
+                });
+            }
+            return structs;
+        }
+        public static List<Staff> CreateListModel(List<Staff> structs, int numTitle, int[] startRows, ExcelWorksheet worksheet)
+        {
+            int startRow = startRows[numTitle] + 2;
+            int endRow = startRows[numTitle + 1];
+            for (int i = startRow; i < endRow; i++)
+            {
+                string num = worksheet.Cells[i, 1].Value.ToString().Trim();
+                string name = worksheet.Cells[i, 2].Value.ToString().Trim();
+                string type = worksheet.Cells[i, 3].Value.ToString().Trim();
+                string combineResponsibility = worksheet.Cells[i, 4].Value.ToString().Trim();
+                string elSaftyGroup = worksheet.Cells[i, 5].Value.ToString().Trim();
+                string grade = worksheet.Cells[i, 6].Value.ToString().Trim();
+                string competence = worksheet.Cells[i, 7].Value.ToString().Trim();
+                string symbol = worksheet.Cells[i, 12].Value.ToString().Trim();
+                //string comment = worksheet.Cells[i, 12].Value.ToString().Trim();
+
+                structs.Add(new Staff
+                {
+                    Num = int.Parse(num),
+                    Name = name,
+                    Type = type,
+                    CombineResponsibility = combineResponsibility,
+                    ElSaftyGroup = elSaftyGroup,
+                    Grade = byte.Parse(grade),
+                    Competence = competence,
+                    Symbol = symbol,
+                    //Comment = comment
+                });
+            }
+            return structs;
         }
     }
 }

@@ -7,7 +7,10 @@
         string type;
         string unit;
         int amount;
-
+        public Tool()
+        {
+            
+        }
         public Tool (int num, string name, string type, string unit, int amount)
         {
             this.num = num;
