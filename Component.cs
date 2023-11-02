@@ -1,24 +1,15 @@
-﻿using CsvHelper.Configuration.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.Text.Json.Serialization;
 
 namespace Technological_card
 {
     internal class Component : Struct//2. Требования к материалам и комплектующим
     {
         static int count;
-        [Name("Num")]
         int num;
-        [Name("Name")]
         string name;
-        [Name("Type")]
         string type;
-        [Name("Unit")]
         string unit;
-        [Name("Amount")]
         int amount; // using uint here
 
         public Component()
@@ -35,21 +26,18 @@ namespace Technological_card
             this.amount = amount;
             count++;
         }
-
-        [Name("Num")]//[Name("№")]
+        [JsonInclude]
         public override int Num
         { get { return num; } set { num = value; } }
-        [Name("Наименование")]
-        public string Name
+        [JsonInclude]
+        public override string Name
         { get { return name; } set { name = value; } }
-        [Name("Тип (исполнение)")]
-        public string Type
+        [JsonInclude]
+        public override string Type
         { get { return type; } set { type = value; } }
-        [Name("Ед. Изм.")]
-        public string Unit
+        public override string Unit
         { get { return unit; } set { unit = value; } }
-        [Name("Кол-во")]
-        public int Amount
+        public override int Amount
         { get { return amount; } 
             set 
             {

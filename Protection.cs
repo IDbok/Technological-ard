@@ -12,9 +12,8 @@ namespace Technological_card
         string name;
         string type;
         string unit;
-        uint amount; // using uint here
-
-        public Protection (int num, string name, string type, string unit, uint amount)
+        int amount;
+        public Protection (int num, string name, string type, string unit, int amount)
         {
             this.num = num;
             this.name = name;
@@ -23,17 +22,17 @@ namespace Technological_card
             this.amount = amount;
         }
 
-        public int Num
+        public override int Num
         { get { return num; } set { num = value; } }
 
-        public string Name
+        public override string Name
         { get { return name; } set { name = value; } }
-        public string Type
+        public override string Type
         { get { return type; } set { type = value; } }
 
-        public string Unit
+        public override string Unit
         { get { return unit; } set { unit = value; } }
-        public uint Amount
+        public override int Amount
         { get { return amount; } set { amount = value; } }
     }
 }

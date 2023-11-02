@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Technological_card
 {
-    internal class Machine : Struct//3. Требования к механизмам
+    internal class Machine //3. Требования к механизмам
     {
         int num;
         string name;
