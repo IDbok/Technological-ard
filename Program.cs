@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using System.Text.Json;
 
 namespace Technological_card
@@ -8,6 +7,7 @@ namespace Technological_card
     {
         // Путь к файлу с ТК
         static string filepath = @"C:\Users\bokar\Documents\ТК.xlsx";
+        static string jsonCatalog = @"C:\Users\bokar\source\repos\Technological card\Cards";
 
         //Список ключевых слов (заголовков)
         static string[] keyWords =
@@ -97,8 +97,9 @@ namespace Technological_card
 
         public enum StructType 
         { 
-            Component=2, 
-            Protection=4, 
+            Component=2,
+            Machine=3,
+            Protection =4, 
             Tool=5
         }
 
@@ -114,7 +115,7 @@ namespace Technological_card
                 };
 
                 string json = JsonSerializer.Serialize(item, options);
-                string pathJson = $@"C:\Users\bokar\source\repos\Technological card\Cards\{sheetName}\{stuctNames[numTitle]}\";
+                string pathJson = $@"{jsonCatalog}\{sheetName}\{stuctNames[numTitle]}\";
                 if (!Directory.Exists(pathJson)) Directory.CreateDirectory(pathJson);
                 File.WriteAllText(pathJson + item.Num + ".json", json);
             }
@@ -131,7 +132,7 @@ namespace Technological_card
                 };
 
                 string json = JsonSerializer.Serialize(item, options);
-                string pathJson = $@"C:\Users\bokar\source\repos\Technological card\Cards\{sheetName}\{stuctNames[numTitle]}\";
+                string pathJson = $@"{jsonCatalog}\{sheetName}\{stuctNames[numTitle]}\";
                 if (!Directory.Exists(pathJson)) Directory.CreateDirectory(pathJson);
                 File.WriteAllText(pathJson + item.Num + ".json", json);
             }
@@ -162,7 +163,8 @@ namespace Technological_card
                         Unit = unit,
                         Amount = (int)uint.Parse(amount)
                     });
-                } else if (structType == StructType.Component)
+                } 
+                else if (structType == StructType.Component)
                 {
                     structs.Add(new Component
                     {
@@ -184,7 +186,17 @@ namespace Technological_card
                         Amount = (int)uint.Parse(amount)
                     });
                 }
-
+                else if (structType == StructType.Machine)
+                {
+                    structs.Add(new Machine
+                    {
+                        Num = int.Parse(num),
+                        Name = name,
+                        Type = type,
+                        Unit = unit,
+                        Amount = (int)uint.Parse(amount)
+                    });
+                }
             }
             return structs;
         }
@@ -192,6 +204,7 @@ namespace Technological_card
         {
             int startRow = startRows[numTitle] + 2;
             int endRow = startRows[numTitle + 1];
+            int symbolCol = FindColumn("Обозначение в ТК", startRows[numTitle] + 1, worksheet);
             for (int i = startRow; i < endRow; i++)
             {
                 string num = worksheet.Cells[i, 1].Value.ToString().Trim();
@@ -201,7 +214,7 @@ namespace Technological_card
                 string elSaftyGroup = worksheet.Cells[i, 5].Value.ToString().Trim();
                 string grade = worksheet.Cells[i, 6].Value.ToString().Trim();
                 string competence = worksheet.Cells[i, 7].Value.ToString().Trim();
-                string symbol = worksheet.Cells[i, 12].Value.ToString().Trim();
+                string symbol = worksheet.Cells[i, symbolCol].Value.ToString().Trim();
                 //string comment = worksheet.Cells[i, 12].Value.ToString().Trim();
 
                 structs.Add(new Staff
@@ -218,6 +231,17 @@ namespace Technological_card
                 });
             }
             return structs;
+        }
+
+        public static int FindColumn(string columnName,int columnRow, ExcelWorksheet worksheet) 
+        {
+            int numColumn = 0;
+            for (int i = 1;i<100;i++)
+            {
+                if (worksheet.Cells[columnRow, i].Value != null && worksheet.Cells[columnRow, i].Value.ToString() == columnName) 
+                { numColumn = i; break; }
+            }
+            return numColumn; 
         }
 
     }
