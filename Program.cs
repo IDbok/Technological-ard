@@ -1,5 +1,6 @@
 ﻿using OfficeOpenXml;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Technological_card
 {
@@ -17,10 +18,11 @@ namespace Technological_card
                 "3. Требования к механизмам",
                 "4. Требования к средствам защиты",
                 "5. Требования к инструментам и приспособлениям",
-                "6. Выполнение работ"
+                "6. Выполнение работ",
+                ""
 
             };
-        static string[] stuctNames = { "Staff", "Components", "Machines", "Protection", "Tools" };
+        static string[] stuctNames = { "Staff", "Components", "Machines", "Protection", "Tools", "WorkSteps" };
         
         static void Main(string[] args)
         {
@@ -66,7 +68,10 @@ namespace Technological_card
                         case 0:
                             SaveToJSON(CreateListModel(new List<Staff>(), i, startRows, worksheet), i, sheetName);
                             break;
-                        
+                        case 5:
+                            SaveToJSON(CreateListModel(new List<WorkStep>(), i, startRows, worksheet), i, sheetName);
+                            break;
+
                         default:
                             break;
                     }
@@ -83,7 +88,8 @@ namespace Technological_card
             int numRowsFound = 0;
             for (int i = 1; i < 1000; i++)
             {
-                string? valueCell = worksheet.Cells[i, 1].Value.ToString();
+
+                string valueCell = worksheet.Cells[i, 1].Value != null ? worksheet.Cells[i, 1].Value.ToString(): "";
                 string keyWord = keyWords[numRowsFound];
                 if (valueCell == keyWord)
                 {
@@ -137,7 +143,24 @@ namespace Technological_card
                 File.WriteAllText(pathJson + item.Num + ".json", json);
             }
         }
-        
+        public static void SaveToJSON(List<WorkStep> ListOfStruct, int numTitle, string sheetName)
+        {
+            foreach (var item in ListOfStruct)
+            {
+                // Создание объекта для записи без кодировки в Unicode
+                var options = new JsonSerializerOptions
+                {
+                    // set the encoder to UnicodeEncoding
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+
+                string json = JsonSerializer.Serialize(item, options);
+                string pathJson = $@"{jsonCatalog}\{sheetName}\{stuctNames[numTitle]}\";
+                if (!Directory.Exists(pathJson)) Directory.CreateDirectory(pathJson);
+                File.WriteAllText(pathJson + item.Num + ".json", json);
+            }
+        }
+
 
         public static List<Struct> CreateListModel(List<Struct> structs, int numTitle, int[] startRows, ExcelWorksheet worksheet) 
         {
@@ -228,6 +251,60 @@ namespace Technological_card
                     Competence = competence,
                     Symbol = symbol,
                     //Comment = comment
+                });
+            }
+            return structs;
+        }
+        public static List<WorkStep> CreateListModel(List<WorkStep> structs, int numTitle, int[] startRows, ExcelWorksheet worksheet)
+        {
+            int startRow = startRows[numTitle] + 2;
+            int endRow = startRows[numTitle + 1];
+            int protectionCol = FindColumn("№ средства защиты", startRows[numTitle] + 1, worksheet);
+            for (int i = startRow; i < endRow; i++)
+            {
+                string num = worksheet.Cells[i, 1].Value.ToString().Trim();
+
+                string allDescription = worksheet.Cells[i, 2].Value.ToString();
+
+                string[] parts = allDescription.Split(':',2);
+                string? staff, description, comments;
+                string[] parts2;
+                if (parts.Count() == 2)
+                {
+                    staff = parts[0].Trim();
+                    parts2 = parts[1].Split("Примечание:", 2);
+                    description = Regex.Replace(parts2[0].Trim(), @"\s+", " ");
+                    comments = parts2.Count() == 2 ? parts2[1].Trim() : null;
+                }
+                else 
+                {
+                    staff = null;
+                    parts2 = parts[0].Split("Примечание:", 2);
+                    description = Regex.Replace(parts2[0].Trim(), @"\s+", " ");
+                    comments = parts2.Count() == 2 ? parts2[1].Trim() : null;
+                }
+                
+                string stepExecutionTime = worksheet.Cells[i, 5].Value.ToString().Trim();
+                if (worksheet.Cells[i, 6].Value != null)
+                {
+                    WorkStep.AddStage(WorkStep.GetLastStageNum()+1, float.Parse(worksheet.Cells[i, 6].Value.ToString().Trim()));
+                }
+                string stageExecutionTime = WorkStep.GetLastStageTime().ToString();
+                string stage = WorkStep.GetLastStageNum().ToString();
+                //string machineExecutionTime = worksheet.Cells[i, 7].Value.ToString().Trim();
+                string protections = worksheet.Cells[i, protectionCol].Value.ToString().Trim();
+                
+
+                structs.Add(new WorkStep
+                {
+                    Num = int.Parse(num),
+                    Description = description,
+                    Staff = staff,
+                    StepExecutionTime = float.Parse(stepExecutionTime),
+                    StageExecutionTime = float.Parse(stageExecutionTime),
+                    Stage = int.Parse(stage),
+                    Protections = protections,
+                    Comments = comments
                 });
             }
             return structs;
