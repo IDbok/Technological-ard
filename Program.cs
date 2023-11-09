@@ -23,10 +23,43 @@ namespace Technological_card
 
             };
         static string[] stuctNames = { "Staff", "Components", "Machines", "Protection", "Tools", "WorkSteps" };
-        
+
+        public static void GetPathToFiles() 
+        { 
+            while (true)
+            {
+
+                Console.WriteLine($"По умолчанию задан путь к файлу \"{filepath}\"\nкаталог для json \"{jsonCatalog}\"");
+                Console.WriteLine("Оставить параметры по умолчанию? (Y/N)");
+                string answer = Console.ReadLine();
+                answer = answer.Trim().ToUpper();
+                if (answer == "Y") break;
+                else if (answer == "N")
+                {
+                    Console.WriteLine("Введите путь к файлу с ТК:");
+                    answer = Console.ReadLine();
+
+                    if (!File.Exists(answer)) 
+                    {
+                        Console.WriteLine("Файл не найден!"); 
+                        continue; 
+                    }
+                    else { filepath = answer; }
+
+                    Console.WriteLine("Введите путь к папке сохранения json из ТК:");
+                    jsonCatalog = Console.ReadLine();
+                }
+                else { Console.WriteLine("Неверный ввод!"); continue; }
+
+            }
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
+
+            GetPathToFiles();
+
             // Ввод лицензии для работы с Excel
             ExcelPackage.LicenseContext = LicenseContext.Commercial;
 
@@ -41,7 +74,7 @@ namespace Technological_card
                 }
 
                 // Определение листа в переменную
-                string sheetName = sheetsTK[2];
+                string sheetName = sheetsTK[3];
                 var worksheet = package.Workbook.Worksheets[sheetName];
 
                 for (int i = 0; i < stuctNames.Count(); i++)
