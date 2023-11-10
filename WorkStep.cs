@@ -1,5 +1,4 @@
-﻿using CsvHelper;
-
+﻿
 namespace Technological_card
 {
     public class WorkStep

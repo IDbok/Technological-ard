@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using System;
-
+﻿
 namespace Technological_card
 {
     public class Struct

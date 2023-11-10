@@ -24,12 +24,42 @@ namespace Technological_card
             };
         static string[] stuctNames = { "Staff", "Components", "Machines", "Protection", "Tools", "WorkSteps" };
 
+        // Десериализация настроек пути к файлу и каталогу по умолчанию
+        static void GetDefaultSettings() 
+        { 
+            if (File.Exists("settings.json"))
+            {
+                string json = File.ReadAllText("settings.json");
+                AppSettings settings = JsonSerializer.Deserialize<AppSettings>(json);
+                filepath = settings.FilePath;
+                jsonCatalog = settings.CatalogPath;
+                Console.WriteLine("Параметры загружены");
+            }
+            else { Console.WriteLine(
+                "Файл настроек не найден.\n Параметры по умолчанию:" +
+                $"\nПуть к файлу c ТК: {filepath}" +
+                $"\nПуть к каталогу для json: {jsonCatalog}"); 
+            }
+        }
+
+        //Сериализация настроек пути к файлу и каталогу по умолчанию
+        static void SaveDefaultSettings()
+        {
+            AppSettings settings = new AppSettings();
+            settings.FilePath = filepath;
+            settings.CatalogPath = jsonCatalog;
+            string json = JsonSerializer.Serialize(settings);
+            File.WriteAllText("settings.json", json);
+            Console.WriteLine("Параметры сохранены");
+        }
+
+        // Консольный ввод пути к файлу с ТК и каталогу карт с json
         public static void GetPathToFiles() 
         { 
             while (true)
             {
 
-                Console.WriteLine($"По умолчанию задан путь к файлу \"{filepath}\"\nкаталог для json \"{jsonCatalog}\"");
+                Console.WriteLine($"\nПо умолчанию задан путь к файлу \"{filepath}\"\nкаталог для json \"{jsonCatalog}\"");
                 Console.WriteLine("Оставить параметры по умолчанию? (Y/N)");
                 string answer = Console.ReadLine();
                 answer = answer.Trim().ToUpper();
@@ -47,10 +77,56 @@ namespace Technological_card
                     else { filepath = answer; }
 
                     Console.WriteLine("Введите путь к папке сохранения json из ТК:");
-                    jsonCatalog = Console.ReadLine();
+                    answer = Console.ReadLine();
+                    // Проверка на существование директории
+                    if (Directory.Exists(answer))
+                    {
+                        Console.WriteLine("Существует");
+                        jsonCatalog = answer;
+                        break;
+                    }
+                    try
+                    {
+                        // Попытка создания тестовой директории
+                        var testDir = Directory.CreateDirectory(answer);
+                        //Console.WriteLine($"Тестовая директория успешно создана: {testDir.FullName}");
+                        jsonCatalog = testDir.FullName;
+                        Directory.Delete(answer); // Удаление тестовой директории
+                        
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        Console.WriteLine("Нет разрешения на создание директории.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Произошла ошибка: {ex.Message}");
+                    }
+                    
                 }
                 else { Console.WriteLine("Неверный ввод!"); continue; }
 
+            }
+        }
+        
+        // Консольный воод номера листа с ТК
+        public static int GetNumTK(List<String> sheetsTK) 
+        {
+            // Консольный ввод номера листа из списка
+            Console.WriteLine("Выберите номер листа с ТК:");
+            for (int i = 0; i < sheetsTK.Count(); i++)
+            {
+                Console.WriteLine($"{i + 1}. {sheetsTK[i]}");
+            }
+            while (true)
+            {
+                int numSheet = int.Parse(Console.ReadLine()) - 1;
+                //проверка наличия листа в списке
+                if (numSheet < 0 || numSheet > sheetsTK.Count() - 1)
+                {
+                    Console.WriteLine("Неверный ввод!");
+                }
+                else { return numSheet;}
             }
         }
 
@@ -58,62 +134,72 @@ namespace Technological_card
         {
             Console.WriteLine("Hello, World!");
 
+            GetDefaultSettings();
             GetPathToFiles();
+            SaveDefaultSettings();
 
             // Ввод лицензии для работы с Excel
             ExcelPackage.LicenseContext = LicenseContext.Commercial;
 
-            // Создаю объект для работы с Excel
-            using (var package = new ExcelPackage(new FileInfo(filepath)))
+            try
             {
-                //Получение названия всех листов с ТК в книге
-                List<String> sheetsTK = new();
-                foreach (var ws in package.Workbook.Worksheets)
+                // Создаю объект для работы с Excel
+                using (var package = new ExcelPackage(new FileInfo(filepath)))
                 {
-                    if (ws.Name.ToString().Contains("ТК_")) sheetsTK.Add(ws.Name);
-                }
-
-                // Определение листа в переменную
-                string sheetName = sheetsTK[3];
-                var worksheet = package.Workbook.Worksheets[sheetName];
-
-                for (int i = 0; i < stuctNames.Count(); i++)
-                {
-                    // Поиск номеров строк с ключевыми словами
-                    int[] startRows = new int[keyWords.Count()];
-                    startRows = StartRowsCounter(startRows, worksheet);
-
-                    // Запись данных из Excel в json в соответствии с моделью данных
-                    switch (i)
+                    //Получение названия всех листов с ТК в книге
+                    List<String> sheetsTK = new();
+                    foreach (var ws in package.Workbook.Worksheets)
                     {
-                        case 1:
-                            SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
-                            break;
-                        case 2:
-                            SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
-                            break;
-                        case 3:
-                            SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
-                            break;
-                        case 4:
-                            SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
-                            break;
-                        case 0:
-                            SaveToJSON(CreateListModel(new List<Staff>(), i, startRows, worksheet), i, sheetName);
-                            break;
-                        case 5:
-                            SaveToJSON(CreateListModel(new List<WorkStep>(), i, startRows, worksheet), i, sheetName);
-                            break;
-
-                        default:
-                            break;
+                        if (ws.Name.ToString().Contains("ТК_")) sheetsTK.Add(ws.Name);
                     }
 
+                    // Определение листа в переменную
+                    string sheetName = sheetsTK[GetNumTK(sheetsTK)];
+                    var worksheet = package.Workbook.Worksheets[sheetName];
+
+                    for (int i = 0; i < stuctNames.Count(); i++)
+                    {
+                        // Поиск номеров строк с ключевыми словами
+                        int[] startRows = new int[keyWords.Count()];
+                        startRows = StartRowsCounter(startRows, worksheet);
+
+                        // Запись данных из Excel в json в соответствии с моделью данных
+                        switch (i)
+                        {
+                            case 1:
+                                SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
+                                break;
+                            case 2:
+                                SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
+                                break;
+                            case 3:
+                                SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
+                                break;
+                            case 4:
+                                SaveToJSON(CreateListModel(new List<Struct>(), i, startRows, worksheet), i, sheetName);
+                                break;
+                            case 0:
+                                SaveToJSON(CreateListModel(new List<Staff>(), i, startRows, worksheet), i, sheetName);
+                                break;
+                            case 5:
+                                SaveToJSON(CreateListModel(new List<WorkStep>(), i, startRows, worksheet), i, sheetName);
+                                break;
+
+                            default:
+                                break;
+                        }
+
+                    }
+
+                    Console.WriteLine($"Парсиг карты на листе {sheetName} законцен!");
+
                 }
-
-                Console.WriteLine($"Парсиг карты на листе {sheetName} законцен!");
-
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+            }
+            Console.ReadLine();
         }
 
         public static int[] StartRowsCounter(int[] startRows, ExcelWorksheet worksheet) 
