@@ -1,1 +1,1 @@
-{"Num":3,"Description":"Установить БКМ к месту установки опоры. Перевести БКМ в положение крана.","Staff":"МБКМ","StepExecutionTime":5,"Stage":3,"StageExecutionTime":5,"MachineExecutionTime":0,"Protections":"1-3","Comments":null}
+{"Num":3,"Description":"Установить БКМ к месту установки опоры. Перевести БКМ в положение крана.","Staff":"МБКМ","StepExecutionTime":5,"Stage":54,"StageExecutionTime":5,"MachineExecutionTime":0,"Protections":"1-3","Comments":null}
